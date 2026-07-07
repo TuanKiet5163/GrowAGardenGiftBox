@@ -1,10 +1,12 @@
 -- ============================================================
--- UI GIFT BOX – Bản sửa dropdown bị che (dùng khung nổi)
+-- UI GIFT BOX – Sửa lỗi dropdown không hiển thị chữ
+-- Bản này dùng khung dropdown gắn trực tiếp ScreenGui, ZIndex cao
 -- ============================================================
 
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui")
-gui.Name = "GiftBoxUI_Floating"
+gui.Name = "GiftBoxUI_Final"
+gui.ResetOnSpawn = false
 gui.Parent = player.PlayerGui
 
 -- ========== KHUNG CHÍNH ==========
@@ -15,6 +17,7 @@ frame.BackgroundColor3 = Color3.fromRGB(15, 15, 35)
 frame.BackgroundTransparency = 0.1
 frame.BorderSizePixel = 2
 frame.BorderColor3 = Color3.fromRGB(255, 100, 120)
+frame.ClipsDescendants = false  -- cho phép con tràn ra ngoài
 frame.Parent = gui
 
 -- Tiêu đề
@@ -27,7 +30,7 @@ title.TextSize = 17
 title.Font = Enum.Font.SourceSansBold
 title.Parent = frame
 
--- Ô người nhận
+-- Người nhận
 local userBox = Instance.new("TextBox")
 userBox.Size = UDim2.new(1, -20, 0, 28)
 userBox.Position = UDim2.new(0, 10, 0, 40)
@@ -157,16 +160,15 @@ local itemDatabase = {
     {id = 126, name = "Rainbow Carpet"},
 }
 
--- ========== DROPDOWN – KHUNG NỔI TRÊN CÙNG ==========
+-- ========== DROPDOWN – KHUNG NỔI ==========
 local dropFrame = Instance.new("Frame")
 dropFrame.Size = UDim2.new(0, 280, 0, 200)
-dropFrame.Position = UDim2.new(0, 10, 0, 115)  -- Đặt ngay dưới hàng nhập
-dropFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 45)
+dropFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 55)
 dropFrame.BorderSizePixel = 2
-dropFrame.BorderColor3 = Color3.fromRGB(200, 150, 170)
+dropFrame.BorderColor3 = Color3.fromRGB(200, 150, 200)
 dropFrame.Visible = false
-dropFrame.ZIndex = 50  -- Nổi trên tất cả
-dropFrame.Parent = gui  -- Gắn trực tiếp vào ScreenGui
+dropFrame.ZIndex = 999
+dropFrame.Parent = gui  -- gắn trực tiếp vào ScreenGui
 
 local dropList = Instance.new("ScrollingFrame")
 dropList.Size = UDim2.new(1, -8, 1, -8)
@@ -174,7 +176,7 @@ dropList.Position = UDim2.new(0, 4, 0, 4)
 dropList.BackgroundColor3 = Color3.fromRGB(15, 15, 35)
 dropList.BorderSizePixel = 0
 dropList.CanvasSize = UDim2.new(0, 0, 0, 0)
-dropList.ScrollBarThickness = 5
+dropList.ScrollBarThickness = 6
 dropList.Parent = dropFrame
 
 local dropLayout = Instance.new("UIListLayout")
@@ -188,49 +190,65 @@ local function buildDropList()
     end
     for _, data in ipairs(itemDatabase) do
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, -6, 0, 26)
-        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 70)
-        btn.TextColor3 = Color3.fromRGB(230, 230, 250)
+        btn.Size = UDim2.new(1, -6, 0, 28)
+        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 75)
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)  -- chữ trắng trên nền tối
         btn.BorderSizePixel = 0
         btn.Text = data.id .. " - " .. data.name
-        btn.TextSize = 12
+        btn.TextSize = 13
         btn.Font = Enum.Font.SourceSans
         btn.TextXAlignment = Enum.TextXAlignment.Left
-        btn.ZIndex = 51
+        btn.ZIndex = 1000
         btn.Parent = dropList
         btn.MouseButton1Click:Connect(function()
             idBox.Text = tostring(data.id)
             dropFrame.Visible = false
         end)
+        -- hiệu ứng hover
         btn.MouseEnter:Connect(function()
-            btn.BackgroundColor3 = Color3.fromRGB(70, 70, 110)
+            btn.BackgroundColor3 = Color3.fromRGB(70, 70, 120)
         end)
         btn.MouseLeave:Connect(function()
-            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 70)
+            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 75)
         end)
     end
-    dropList.CanvasSize = UDim2.new(0, 0, 0, #itemDatabase * 28 + 6)
+    dropList.CanvasSize = UDim2.new(0, 0, 0, #itemDatabase * 30 + 6)
 end
 buildDropList()
 
+-- Hàm cập nhật vị trí dropdown (ngay dưới nút ▼)
+local function updateDropPosition()
+    local absPos = dropBtn.AbsolutePosition
+    local guiAbs = gui.AbsolutePosition
+    dropFrame.Position = UDim2.new(0, absPos.X - guiAbs.X, 0, absPos.Y - guiAbs.Y + 34)
+end
+
 -- Mở/đóng dropdown
 dropBtn.MouseButton1Click:Connect(function()
-    dropFrame.Visible = not dropFrame.Visible
     if dropFrame.Visible then
+        dropFrame.Visible = false
+    else
         buildDropList()
-        -- Đưa lên trên cùng
-        dropFrame.ZIndex = 100
-        -- Đặt lại vị trí theo tọa độ tuyệt đối của nút dropdown
-        local absPos = dropBtn.AbsolutePosition
-        dropFrame.Position = UDim2.new(0, absPos.X - gui.AbsolutePosition.X, 0, absPos.Y - gui.AbsolutePosition.Y + 34)
+        updateDropPosition()
+        dropFrame.Visible = true
+        dropFrame.ZIndex = 999
     end
 end)
 
--- Ẩn dropdown khi bấm ra ngoài (xử lý bằng cách bắt sự kiện trên toàn bộ gui)
-local function hideDropdown()
+-- Ẩn dropdown khi bấm ra ngoài (bắt sự kiện bấm chuột vào các nút khác)
+local function hideDrop()
     dropFrame.Visible = false
 end
--- Khi bấm vào bất kỳ đâu trên gui (trừ dropdown) sẽ ẩn, nhưng ta sẽ dùng cách đơn giản: khi bấm nút thêm, xóa, gửi thì ẩn.
+
+-- Gắn sự kiện ẩn khi bấm vào các thành phần khác (không cần thiết vì đã ẩn khi bấm nút)
+-- Nhưng để chắc chắn, ta thêm cho các nút: addBtn, clearBtn, sendBtn, closeBtn, userBox, idBox, qtyBox
+addBtn.MouseButton1Click:Connect(hideDrop)
+clearBtn.MouseButton1Click:Connect(hideDrop)
+sendBtn.MouseButton1Click:Connect(hideDrop)
+closeBtn.MouseButton1Click:Connect(hideDrop)
+userBox.Focused:Connect(hideDrop)
+idBox.Focused:Connect(hideDrop)
+qtyBox.Focused:Connect(hideDrop)
 
 -- ========== DANH SÁCH ĐÃ CHỌN ==========
 local listBox = Instance.new("ScrollingFrame")
@@ -308,7 +326,7 @@ logLayout.Parent = logBox
 logLayout.SortOrder = Enum.SortOrder.LayoutOrder
 logLayout.Padding = UDim.new(0, 1)
 
--- ========== BIẾN VÀ HÀM ==========
+-- ========== BIẾN VÀ HÀM XỬ LÝ ==========
 local items = {}
 
 local function addLog(msg, color)
@@ -378,7 +396,6 @@ addBtn.MouseButton1Click:Connect(function()
             it.qty = it.qty + qty
             renderList()
             addLog("➕ Cộng ID " .. id .. " × " .. qty, Color3.fromRGB(100, 255, 150))
-            dropFrame.Visible = false
             return
         end
     end
@@ -387,7 +404,6 @@ addBtn.MouseButton1Click:Connect(function()
     addLog("➕ Thêm ID " .. id .. " × " .. qty, Color3.fromRGB(100, 255, 150))
     idBox.Text = ""
     qtyBox.Text = "1"
-    dropFrame.Visible = false
 end)
 
 -- Xóa hết
@@ -395,7 +411,6 @@ clearBtn.MouseButton1Click:Connect(function()
     items = {}
     renderList()
     addLog("🗑 Đã xóa danh sách", Color3.fromRGB(255, 200, 0))
-    dropFrame.Visible = false
 end)
 
 -- Gửi
@@ -409,7 +424,6 @@ sendBtn.MouseButton1Click:Connect(function()
         addLog("❌ Danh sách rỗng", Color3.fromRGB(255, 100, 100))
         return
     end
-    dropFrame.Visible = false
 
     local ep = "/api/mail/send"
 
