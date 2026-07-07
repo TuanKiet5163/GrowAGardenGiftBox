@@ -1,7 +1,6 @@
 -- ============================================================
--- UI GIFT BOX – Grow a Garden 2 (Đã chỉnh lại bố cục)
+-- UI GIFT BOX – Grow a Garden 2 (Đã xóa vật phẩm 201-208)
 -- Hỗ trợ gửi KHÔNG GIỚI HẠN (tự động chia chunk 20)
--- Đã xóa vật phẩm không cần thiết, chỉ giữ ID hợp lệ
 -- ============================================================
 
 local player = game.Players.LocalPlayer
@@ -9,10 +8,10 @@ local gui = Instance.new("ScreenGui")
 gui.Name = "GiftBoxUI_Fixed"
 gui.Parent = player.PlayerGui
 
--- Khung chính (dịch lên trên để tránh bị che)
+-- Khung chính
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 440, 0, 500)
-frame.Position = UDim2.new(1, -450, 0, 5)   -- top = 5 thay vì 10
+frame.Position = UDim2.new(1, -450, 0, 5)
 frame.BackgroundColor3 = Color3.fromRGB(10, 10, 25)
 frame.BackgroundTransparency = 0.05
 frame.BorderSizePixel = 2
@@ -41,14 +40,13 @@ userBox.PlaceholderText = "Người nhận (nickname)"
 userBox.Text = ""
 userBox.Parent = frame
 
--- ================ HÀNG NGANG: ID | CHỌN | SL | THÊM ================
+-- Hàng ngang: ID | ▼ | SL | + Thêm
 local rowFrame = Instance.new("Frame")
 rowFrame.Size = UDim2.new(1, -10, 0, 30)
 rowFrame.Position = UDim2.new(0, 5, 0, 65)
 rowFrame.BackgroundTransparency = 1
 rowFrame.Parent = frame
 
--- Ô ID (nhập tay)
 local idBox = Instance.new("TextBox")
 idBox.Size = UDim2.new(0, 90, 0, 25)
 idBox.Position = UDim2.new(0, 0, 0, 0)
@@ -60,7 +58,6 @@ idBox.PlaceholderText = "ID"
 idBox.Text = ""
 idBox.Parent = rowFrame
 
--- Nút mở danh sách vật phẩm (dropdown)
 local dropBtn = Instance.new("TextButton")
 dropBtn.Size = UDim2.new(0, 30, 0, 25)
 dropBtn.Position = UDim2.new(0, 95, 0, 0)
@@ -72,7 +69,6 @@ dropBtn.Font = Enum.Font.SourceSansBold
 dropBtn.TextSize = 14
 dropBtn.Parent = rowFrame
 
--- Ô số lượng
 local qtyBox = Instance.new("TextBox")
 qtyBox.Size = UDim2.new(0, 60, 0, 25)
 qtyBox.Position = UDim2.new(0, 130, 0, 0)
@@ -84,7 +80,6 @@ qtyBox.PlaceholderText = "SL"
 qtyBox.Text = "1"
 qtyBox.Parent = rowFrame
 
--- Nút + Thêm
 local addBtn = Instance.new("TextButton")
 addBtn.Size = UDim2.new(0, 60, 0, 25)
 addBtn.Position = UDim2.new(0, 195, 0, 0)
@@ -94,8 +89,7 @@ addBtn.BorderSizePixel = 0
 addBtn.Text = "+ Thêm"
 addBtn.Parent = rowFrame
 
--- =============== DANH SÁCH DROPDOWN (vật phẩm) ===============
--- Chỉ giữ lại các vật phẩm có thể gift (ID đúng theo game)
+-- ================= DANH SÁCH VẬT PHẨM (ĐÃ XÓA ID 201-208) =================
 local itemDatabase = {
     -- Seeds
     {id = 1, name = "Carrot Seed"},
@@ -156,21 +150,13 @@ local itemDatabase = {
     {id = 124, name = "Freeze Ray"},
     {id = 125, name = "Vine Wrapper"},
     {id = 126, name = "Rainbow Carpet"},
-    -- Others
-    {id = 201, name = "Fertilizer"},
-    {id = 202, name = "Golden Shovel"},
-    {id = 203, name = "Diamond Hoe"},
-    {id = 204, name = "Gold Bar"},
-    {id = 205, name = "Emerald"},
-    {id = 206, name = "Treasure Chest"},
-    {id = 207, name = "Golden Key"},
-    {id = 208, name = "Phoenix Feather"},
+    -- KHÔNG BAO GỒM 201-208
 }
 
 -- Dropdown list
 local dropList = Instance.new("ScrollingFrame")
 dropList.Size = UDim2.new(0, 220, 0, 150)
-dropList.Position = UDim2.new(0, 5, 0, 100)  -- nằm dưới hàng nhập
+dropList.Position = UDim2.new(0, 5, 0, 100)
 dropList.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
 dropList.BorderSizePixel = 1
 dropList.BorderColor3 = Color3.fromRGB(80, 80, 120)
@@ -184,7 +170,6 @@ dropLayout.Parent = dropList
 dropLayout.SortOrder = Enum.SortOrder.LayoutOrder
 dropLayout.Padding = UDim.new(0, 2)
 
--- Tạo danh sách thả xuống
 local function buildDropList()
     for _, child in pairs(dropList:GetChildren()) do
         if child:IsA("TextButton") then child:Destroy() end
@@ -209,13 +194,12 @@ local function buildDropList()
 end
 buildDropList()
 
--- Mở/đóng dropdown
 dropBtn.MouseButton1Click:Connect(function()
     dropList.Visible = not dropList.Visible
     if dropList.Visible then buildDropList() end
 end)
 
--- =============== DANH SÁCH ĐÃ CHỌN ===============
+-- Danh sách đã chọn
 local listBox = Instance.new("ScrollingFrame")
 listBox.Size = UDim2.new(1, -10, 0, 120)
 listBox.Position = UDim2.new(0, 5, 0, 135)
@@ -243,7 +227,7 @@ sendBtn.Font = Enum.Font.SourceSansBold
 sendBtn.TextSize = 13
 sendBtn.Parent = frame
 
--- Nút xóa và đóng (cùng hàng)
+-- Hàng nút xóa và đóng
 local actionRow = Instance.new("Frame")
 actionRow.Size = UDim2.new(1, -10, 0, 30)
 actionRow.Position = UDim2.new(0, 5, 0, 300)
@@ -304,7 +288,7 @@ local function addLog(msg, color)
     logBox.CanvasSize = UDim2.new(0, 0, 0, logLayout.AbsoluteContentSize.Y)
 end
 
--- Hàm render danh sách
+-- Render danh sách
 local function renderList()
     for _, child in pairs(listBox:GetChildren()) do
         if child:IsA("TextLabel") then child:Destroy() end
@@ -408,7 +392,7 @@ sendBtn.MouseButton1Click:Connect(function()
     end
 
     addLog("🚀 Bắt đầu gửi đến " .. user, Color3.fromRGB(0, 255, 255))
-    addLog("📦 Tổng " .. #flat .. " món, chia " .. #chunks .. " đợt (20 món/đợt)", Color3.fromRGB(0, 255, 255))
+    addLog("📦 Tổng " .. #flat .. " món, chia " .. #chunks .. " đợt", Color3.fromRGB(0, 255, 255))
 
     sendBtn.Text = "⏳ Đang gửi..."
     sendBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
@@ -419,9 +403,9 @@ sendBtn.MouseButton1Click:Connect(function()
     local function sendNext()
         if idx > #chunks then
             if success == #chunks then
-                addLog("🏁 HOÀN THÀNH! Đã gửi " .. success .. "/" .. #chunks .. " đợt", Color3.fromRGB(136, 255, 136))
+                addLog("🏁 HOÀN THÀNH! " .. success .. "/" .. #chunks .. " đợt", Color3.fromRGB(136, 255, 136))
             else
-                addLog("🏁 HOÀN THÀNH: " .. success .. "/" .. #chunks .. " đợt thành công", Color3.fromRGB(255, 255, 0))
+                addLog("🏁 HOÀN THÀNH: " .. success .. "/" .. #chunks .. " đợt", Color3.fromRGB(255, 255, 0))
             end
             sendBtn.Text = "🚀 GỬI TẤT CẢ (KHÔNG GIỚI HẠN)"
             sendBtn.BackgroundColor3 = Color3.fromRGB(233, 69, 96)
@@ -461,7 +445,7 @@ sendBtn.MouseButton1Click:Connect(function()
             addLog("✅ Đợt " .. idx .. "/" .. #chunks .. " OK", Color3.fromRGB(136, 255, 136))
             success = success + 1
         else
-            local errMsg = "Lỗi không xác định"
+            local errMsg = "Lỗi"
             if resp and resp.StatusCode then
                 errMsg = "HTTP " .. resp.StatusCode
             end
@@ -476,5 +460,5 @@ sendBtn.MouseButton1Click:Connect(function()
     sendNext()
 end)
 
-addLog("✅ UI đã sẵn sàng – KHÔNG GIỚI HẠN số lượng gửi", Color3.fromRGB(0, 255, 0))
+addLog("✅ UI đã sẵn sàng – KHÔNG GIỚI HẠN", Color3.fromRGB(0, 255, 0))
 addLog("📋 Danh sách có " .. #itemDatabase .. " vật phẩm", Color3.fromRGB(0, 255, 255))
