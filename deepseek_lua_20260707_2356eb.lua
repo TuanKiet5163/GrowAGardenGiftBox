@@ -1,18 +1,18 @@
 -- ============================================================
--- UI GIFT BOX – Bản sửa lỗi gửi không thành công
--- Cho phép nhập endpoint, hiển thị log chi tiết phản hồi
+-- UI GIFT BOX – TÍCH HỢP CẤU HÌNH MAIL TO SEND
+-- Cho phép nhập tên vật phẩm (không cần ID), gửi mail tự động
 -- ============================================================
 
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui")
-gui.Name = "GiftBoxUI_Debug"
+gui.Name = "GiftBoxUI_Config"
 gui.ResetOnSpawn = false
 gui.Parent = player.PlayerGui
 
 -- ========== KHUNG CHÍNH ==========
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 440, 0, 540)
-frame.Position = UDim2.new(1, -450, 0, 30)
+frame.Size = UDim2.new(0, 480, 0, 560)
+frame.Position = UDim2.new(1, -490, 0, 30)
 frame.BackgroundColor3 = Color3.fromRGB(15, 15, 35)
 frame.BackgroundTransparency = 0.1
 frame.BorderSizePixel = 2
@@ -22,7 +22,7 @@ frame.Parent = gui
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 34)
 title.BackgroundTransparency = 1
-title.Text = "🎁 GIFT BOX – SỬA LỖI GỬI"
+title.Text = "🎁 GIFT BOX – TÊN VẬT PHẨM"
 title.TextColor3 = Color3.fromRGB(255, 150, 170)
 title.TextSize = 17
 title.Font = Enum.Font.SourceSansBold
@@ -42,8 +42,8 @@ userBox.Font = Enum.Font.SourceSans
 userBox.TextSize = 14
 userBox.Parent = frame
 
--- Ô endpoint (ẩn, có thể hiện khi bấm nút)
-local endpointBox = Instance.new("TextBox)
+-- Ô endpoint (ẩn)
+local endpointBox = Instance.new("TextBox")
 endpointBox.Size = UDim2.new(1, -20, 0, 28)
 endpointBox.Position = UDim2.new(0, 10, 0, 74)
 endpointBox.BackgroundColor3 = Color3.fromRGB(30, 30, 55)
@@ -54,32 +54,59 @@ endpointBox.PlaceholderText = "🔗 Endpoint (mặc định: /api/mail/send)"
 endpointBox.Text = "/api/mail/send"
 endpointBox.Font = Enum.Font.SourceSans
 endpointBox.TextSize = 13
-endpointBox.Visible = false  -- ẩn ban đầu, sẽ hiện khi bấm nút cài đặt
+endpointBox.Visible = false
 endpointBox.Parent = frame
 
--- ========== HÀNG NHẬP ==========
+-- ========== DANH SÁCH VẬT PHẨM THEO TÊN ==========
+-- Lấy từ config Seeds To Plant + các vật phẩm khác trong game
+local itemNameDatabase = {
+    -- Seeds (từ Seeds To Plant)
+    "Carrot", "Strawberry", "Blueberry", "Tulip", "Tomato", "Apple",
+    "Corn", "Bamboo", "Mushroom", "Cactus", "Pineapple", "Green Bean",
+    "Banana", "Grape", "Coconut", "Mango", "Dragon Fruit", "Acorn",
+    "Cherry", "Sunflower",
+    -- Mutation / Special
+    "Dragon's Breath", "Moon Bloom", "Venus Fly Trap", "Pomegranate",
+    "Poison Apple", "Venom Spitter", "Ghost Pepper", "Baby Cactus",
+    "Horned Melon", "Glow Mushroom", "Poison Ivy",
+    -- Gears
+    "Common Watering Can", "Common Sprinkler", "Sign", "Uncommon Sprinkler",
+    "Trowel", "Rare Sprinkler", "Jump Mushroom", "Speed Mushroom",
+    "Lantern", "Shrink Mushroom", "Supersize Mushroom", "Gnome",
+    "Flashbang", "Basic Pot", "Legendary Sprinkler", "Invisibility Mushroom",
+    "Teleporter", "Wheelbarrow", "Super Watering Can", "Super Sprinkler",
+    "Player Magnet", "Pet Server Teleporter", "Megaphone", "Freeze Ray",
+    "Vine Wrapper", "Rainbow Carpet",
+    -- Pets (nếu có thể gift)
+    "Unicorn", "Raccoon", "IceSerpent", "Robin", "Deer",
+    -- Others
+    "Golden Shovel", "Diamond Hoe", "Gold", "Emerald", "Treasure Chest",
+    "Golden Key", "Phoenix Feather", "Rainbow", "Golden Dragonfly",
+}
+
+-- ========== HÀNG NHẬP (TÊN VẬT PHẨM + SỐ LƯỢNG) ==========
 local row = Instance.new("Frame")
 row.Size = UDim2.new(1, -20, 0, 34)
 row.Position = UDim2.new(0, 10, 0, 108)
 row.BackgroundTransparency = 1
 row.Parent = frame
 
-local idBox = Instance.new("TextBox")
-idBox.Size = UDim2.new(0, 90, 0, 30)
-idBox.Position = UDim2.new(0, 0, 0, 0)
-idBox.BackgroundColor3 = Color3.fromRGB(30, 30, 55)
-idBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-idBox.BorderSizePixel = 1
-idBox.BorderColor3 = Color3.fromRGB(70, 70, 100)
-idBox.PlaceholderText = "ID"
-idBox.Text = ""
-idBox.Font = Enum.Font.SourceSans
-idBox.TextSize = 14
-idBox.Parent = row
+local nameBox = Instance.new("TextBox")
+nameBox.Size = UDim2.new(0, 160, 0, 30)
+nameBox.Position = UDim2.new(0, 0, 0, 0)
+nameBox.BackgroundColor3 = Color3.fromRGB(30, 30, 55)
+nameBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+nameBox.BorderSizePixel = 1
+nameBox.BorderColor3 = Color3.fromRGB(70, 70, 100)
+nameBox.PlaceholderText = "Tên vật phẩm"
+nameBox.Text = ""
+nameBox.Font = Enum.Font.SourceSans
+nameBox.TextSize = 13
+nameBox.Parent = row
 
 local pickBtn = Instance.new("TextButton")
-pickBtn.Size = UDim2.new(0, 70, 0, 30)
-pickBtn.Position = UDim2.new(0, 95, 0, 0)
+pickBtn.Size = UDim2.new(0, 60, 0, 30)
+pickBtn.Position = UDim2.new(0, 165, 0, 0)
 pickBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 140)
 pickBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 pickBtn.BorderSizePixel = 0
@@ -90,7 +117,7 @@ pickBtn.Parent = row
 
 local qtyBox = Instance.new("TextBox")
 qtyBox.Size = UDim2.new(0, 60, 0, 30)
-qtyBox.Position = UDim2.new(0, 170, 0, 0)
+qtyBox.Position = UDim2.new(0, 230, 0, 0)
 qtyBox.BackgroundColor3 = Color3.fromRGB(30, 30, 55)
 qtyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 qtyBox.BorderSizePixel = 1
@@ -103,7 +130,7 @@ qtyBox.Parent = row
 
 local addBtn = Instance.new("TextButton")
 addBtn.Size = UDim2.new(0, 65, 0, 30)
-addBtn.Position = UDim2.new(0, 235, 0, 0)
+addBtn.Position = UDim2.new(0, 295, 0, 0)
 addBtn.BackgroundColor3 = Color3.fromRGB(50, 180, 110)
 addBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 addBtn.BorderSizePixel = 0
@@ -112,10 +139,10 @@ addBtn.Font = Enum.Font.SourceSansBold
 addBtn.TextSize = 14
 addBtn.Parent = row
 
--- Nút cài đặt (hiện endpoint)
+-- Nút cài đặt
 local settingsBtn = Instance.new("TextButton")
 settingsBtn.Size = UDim2.new(0, 40, 0, 30)
-settingsBtn.Position = UDim2.new(0, 305, 0, 0)
+settingsBtn.Position = UDim2.new(0, 365, 0, 0)
 settingsBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 120)
 settingsBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 settingsBtn.BorderSizePixel = 0
@@ -127,7 +154,7 @@ settingsBtn.MouseButton1Click:Connect(function()
     endpointBox.Visible = not endpointBox.Visible
 end)
 
--- ========== POPUP CHỌN VẬT PHẨM ==========
+-- ========== POPUP CHỌN TÊN VẬT PHẨM ==========
 local popupFrame = Instance.new("Frame")
 popupFrame.Size = UDim2.new(0, 320, 0, 380)
 popupFrame.Position = UDim2.new(0.5, -160, 0.5, -190)
@@ -141,7 +168,7 @@ popupFrame.Parent = gui
 local popupTitle = Instance.new("TextLabel")
 popupTitle.Size = UDim2.new(1, 0, 0, 34)
 popupTitle.BackgroundTransparency = 1
-popupTitle.Text = "📋 Chọn vật phẩm"
+popupTitle.Text = "📋 Chọn tên vật phẩm"
 popupTitle.TextColor3 = Color3.fromRGB(255, 200, 200)
 popupTitle.TextSize = 16
 popupTitle.Font = Enum.Font.SourceSansBold
@@ -176,85 +203,24 @@ closePopupBtn.MouseButton1Click:Connect(function()
     popupFrame.Visible = false
 end)
 
--- ========== DANH SÁCH VẬT PHẨM ==========
-local itemDatabase = {
-    {id = 1, name = "Carrot Seed"},
-    {id = 2, name = "Strawberry Seed"},
-    {id = 3, name = "Blueberry Seed"},
-    {id = 4, name = "Tulip Seed"},
-    {id = 5, name = "Tomato Seed"},
-    {id = 6, name = "Apple Seed"},
-    {id = 7, name = "Bamboo Seed"},
-    {id = 8, name = "Corn Seed"},
-    {id = 9, name = "Cactus Seed"},
-    {id = 10, name = "Pineapple Seed"},
-    {id = 11, name = "Mushroom Seed"},
-    {id = 12, name = "Green Bean Seed"},
-    {id = 13, name = "Banana Seed"},
-    {id = 14, name = "Grape Seed"},
-    {id = 15, name = "Coconut Seed"},
-    {id = 16, name = "Mango Seed"},
-    {id = 17, name = "Dragon Fruit Seed"},
-    {id = 18, name = "Acorn Seed"},
-    {id = 19, name = "Cherry Seed"},
-    {id = 20, name = "Sunflower Seed"},
-    {id = 21, name = "Venus Fly Trap Seed"},
-    {id = 22, name = "Pomegranate Seed"},
-    {id = 23, name = "Poison Apple Seed"},
-    {id = 24, name = "Venom Spitter Seed"},
-    {id = 25, name = "Moon Bloom Seed"},
-    {id = 26, name = "Dragon's Breath Seed"},
-    {id = 27, name = "Ghost Pepper Seed"},
-    {id = 28, name = "Baby Cactus Seed"},
-    {id = 29, name = "Horned Melon Seed"},
-    {id = 30, name = "Glow Mushroom Seed"},
-    {id = 31, name = "Poison Ivy Seed"},
-    {id = 101, name = "Common Watering Can"},
-    {id = 102, name = "Common Sprinkler"},
-    {id = 103, name = "Sign"},
-    {id = 104, name = "Uncommon Sprinkler"},
-    {id = 105, name = "Trowel"},
-    {id = 106, name = "Rare Sprinkler"},
-    {id = 107, name = "Jump Mushroom"},
-    {id = 108, name = "Speed Mushroom"},
-    {id = 109, name = "Lantern"},
-    {id = 110, name = "Shrink Mushroom"},
-    {id = 111, name = "Supersize Mushroom"},
-    {id = 112, name = "Gnome"},
-    {id = 113, name = "Flashbang"},
-    {id = 114, name = "Basic Pot"},
-    {id = 115, name = "Legendary Sprinkler"},
-    {id = 116, name = "Invisibility Mushroom"},
-    {id = 117, name = "Teleporter"},
-    {id = 118, name = "Wheelbarrow"},
-    {id = 119, name = "Super Watering Can"},
-    {id = 120, name = "Super Sprinkler"},
-    {id = 121, name = "Player Magnet"},
-    {id = 122, name = "Pet Server Teleporter"},
-    {id = 123, name = "Megaphone"},
-    {id = 124, name = "Freeze Ray"},
-    {id = 125, name = "Vine Wrapper"},
-    {id = 126, name = "Rainbow Carpet"},
-}
-
 local function buildPopupList()
     for _, child in pairs(popupList:GetChildren()) do
         if child:IsA("TextButton") then child:Destroy() end
     end
-    for _, data in ipairs(itemDatabase) do
+    for _, name in ipairs(itemNameDatabase) do
         local btn = Instance.new("TextButton")
         btn.Size = UDim2.new(1, -4, 0, 28)
         btn.BackgroundColor3 = Color3.fromRGB(40, 40, 70)
         btn.TextColor3 = Color3.fromRGB(255, 255, 255)
         btn.BorderSizePixel = 0
-        btn.Text = data.id .. " - " .. data.name
+        btn.Text = name
         btn.TextSize = 13
         btn.Font = Enum.Font.SourceSans
         btn.TextXAlignment = Enum.TextXAlignment.Left
         btn.ZIndex = 1000
         btn.Parent = popupList
         btn.MouseButton1Click:Connect(function()
-            idBox.Text = tostring(data.id)
+            nameBox.Text = name
             popupFrame.Visible = false
         end)
         btn.MouseEnter:Connect(function()
@@ -264,7 +230,7 @@ local function buildPopupList()
             btn.BackgroundColor3 = Color3.fromRGB(40, 40, 70)
         end)
     end
-    popupList.CanvasSize = UDim2.new(0, 0, 0, #itemDatabase * 30 + 6)
+    popupList.CanvasSize = UDim2.new(0, 0, 0, #itemNameDatabase * 30 + 6)
 end
 
 pickBtn.MouseButton1Click:Connect(function()
@@ -272,7 +238,7 @@ pickBtn.MouseButton1Click:Connect(function()
     popupFrame.Visible = true
 end)
 
--- ========== DANH SÁCH ĐÃ CHỌN ==========
+-- ========== DANH SÁCH ĐÃ CHỌN (hiển thị tên) ==========
 local listBox = Instance.new("ScrollingFrame")
 listBox.Size = UDim2.new(1, -20, 0, 100)
 listBox.Position = UDim2.new(0, 10, 0, 155)
@@ -295,7 +261,7 @@ sendBtn.Position = UDim2.new(0, 10, 0, 265)
 sendBtn.BackgroundColor3 = Color3.fromRGB(230, 80, 100)
 sendBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 sendBtn.BorderSizePixel = 0
-sendBtn.Text = "🚀 GỬI TẤT CẢ (KHÔNG GIỚI HẠN)"
+sendBtn.Text = "🚀 GỬI TẤT CẢ (THEO TÊN)"
 sendBtn.Font = Enum.Font.SourceSansBold
 sendBtn.TextSize = 14
 sendBtn.Parent = frame
@@ -349,7 +315,7 @@ logLayout.SortOrder = Enum.SortOrder.LayoutOrder
 logLayout.Padding = UDim.new(0, 1)
 
 -- ========== BIẾN VÀ HÀM ==========
-local items = {}
+local items = {}  -- mỗi item là {name = "Carrot", qty = 4}
 
 local function addLog(msg, color)
     local line = Instance.new("TextLabel")
@@ -385,7 +351,7 @@ local function renderList()
         local row = Instance.new("TextLabel")
         row.Size = UDim2.new(1, 0, 0, 22)
         row.BackgroundTransparency = 1
-        row.Text = "ID " .. it.id .. " × " .. it.qty .. "   [✕]"
+        row.Text = it.name .. " × " .. it.qty .. "   [✕]"
         row.TextColor3 = Color3.fromRGB(240, 240, 255)
         row.TextSize = 13
         row.Font = Enum.Font.SourceSans
@@ -405,26 +371,27 @@ local function renderList()
     listBox.CanvasSize = UDim2.new(0, 0, 0, #items * 24 + 4)
 end
 
--- Thêm item
+-- Thêm item (theo tên + số lượng)
 addBtn.MouseButton1Click:Connect(function()
-    local id = tonumber(idBox.Text)
+    local name = nameBox.Text:gsub("^%s*(.-)%s*$", "%1")
     local qty = tonumber(qtyBox.Text)
-    if not id or id <= 0 or not qty or qty <= 0 then
-        addLog("⚠️ ID hoặc SL không hợp lệ", Color3.fromRGB(255, 120, 120))
+    if name == "" or not qty or qty <= 0 then
+        addLog("⚠️ Tên hoặc SL không hợp lệ", Color3.fromRGB(255, 120, 120))
         return
     end
+    -- Kiểm tra trùng tên -> cộng dồn
     for _, it in ipairs(items) do
-        if it.id == id then
+        if it.name == name then
             it.qty = it.qty + qty
             renderList()
-            addLog("➕ Cộng ID " .. id .. " × " .. qty, Color3.fromRGB(100, 255, 150))
+            addLog("➕ Cộng " .. name .. " × " .. qty, Color3.fromRGB(100, 255, 150))
             return
         end
     end
-    table.insert(items, {id = id, qty = qty})
+    table.insert(items, {name = name, qty = qty})
     renderList()
-    addLog("➕ Thêm ID " .. id .. " × " .. qty, Color3.fromRGB(100, 255, 150))
-    idBox.Text = ""
+    addLog("➕ Thêm " .. name .. " × " .. qty, Color3.fromRGB(100, 255, 150))
+    nameBox.Text = ""
     qtyBox.Text = "1"
 end)
 
@@ -435,7 +402,7 @@ clearBtn.MouseButton1Click:Connect(function()
     addLog("🗑 Đã xóa danh sách", Color3.fromRGB(255, 200, 0))
 end)
 
--- ========== HÀM GỬI (CÓ LOG CHI TIẾT) ==========
+-- ========== HÀM GỬI (DÙNG TÊN VẬT PHẨM) ==========
 sendBtn.MouseButton1Click:Connect(function()
     local user = userBox.Text:gsub("^%s*(.-)%s*$", "%1")
     if user == "" then
@@ -455,24 +422,58 @@ sendBtn.MouseButton1Click:Connect(function()
 
     addLog("🔗 Endpoint: " .. ep, Color3.fromRGB(0, 200, 255))
 
-    local flat = {}
+    -- Tạo flat list các tên vật phẩm (lặp theo số lượng)
+    local flatNames = {}
     for _, it in ipairs(items) do
         for i = 1, it.qty do
-            table.insert(flat, it.id)
+            table.insert(flatNames, it.name)
         end
     end
 
+    -- Gom nhóm theo tên để tạo payload dạng {["Tên"] = số lượng}
+    local nameMap = {}
+    for _, name in ipairs(flatNames) do
+        nameMap[name] = (nameMap[name] or 0) + 1
+    end
+
+    -- Chia thành chunks 20 món (mỗi món là 1 tên, không phụ thuộc số lượng)
+    -- Nhưng để gọn, ta gửi từng loại với số lượng đã gom
     local chunks = {}
-    for i = 1, #flat, 20 do
-        local chunk = {}
-        for j = i, math.min(i + 19, #flat) do
-            table.insert(chunk, flat[j])
+    local chunkItems = {}
+    local totalItems = 0
+    for name, qty in pairs(nameMap) do
+        for i = 1, qty do
+            table.insert(chunkItems, name)
+            totalItems = totalItems + 1
+            if #chunkItems >= 20 then
+                -- chuyển chunkItems thành map cho chunk này
+                local map = {}
+                for _, n in ipairs(chunkItems) do
+                    map[n] = (map[n] or 0) + 1
+                end
+                local payloadItems = {}
+                for n, q in pairs(map) do
+                    table.insert(payloadItems, {n, q})
+                end
+                table.insert(chunks, payloadItems)
+                chunkItems = {}
+            end
         end
-        table.insert(chunks, chunk)
+    end
+    if #chunkItems > 0 then
+        local map = {}
+        for _, n in ipairs(chunkItems) do
+            map[n] = (map[n] or 0) + 1
+        end
+        local payloadItems = {}
+        for n, q in pairs(map) do
+            table.insert(payloadItems, {n, q})
+        end
+        table.insert(chunks, payloadItems)
     end
 
     addLog("🚀 Bắt đầu gửi đến " .. user, Color3.fromRGB(0, 200, 255))
-    addLog("📦 Tổng " .. #flat .. " món, chia " .. #chunks .. " đợt", Color3.fromRGB(0, 200, 255))
+    addLog("📦 Tổng " .. totalItems .. " món, chia " .. #chunks .. " đợt", Color3.fromRGB(0, 200, 255))
 
     sendBtn.Text = "⏳ Đang gửi..."
     sendBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 140)
@@ -487,23 +488,16 @@ sendBtn.MouseButton1Click:Connect(function()
             else
                 addLog("🏁 HOÀN THÀNH: " .. success .. "/" .. #chunks .. " đợt", Color3.fromRGB(255, 200, 0))
             end
-            sendBtn.Text = "🚀 GỬI TẤT CẢ (KHÔNG GIỚI HẠN)"
+            sendBtn.Text = "🚀 GỬI TẤT CẢ (THEO TÊN)"
             sendBtn.BackgroundColor3 = Color3.fromRGB(230, 80, 100)
             return
         end
 
-        local chunk = chunks[idx]
-        local map = {}
-        for _, id in ipairs(chunk) do
-            map[id] = (map[id] or 0) + 1
-        end
+        local chunk = chunks[idx]  -- mảng { {name, qty}, ... }
         local payload = {
             to = user,
-            items = {}
+            items = chunk
         }
-        for k, v in pairs(map) do
-            table.insert(payload.items, {tonumber(k), v})
-        end
 
         local xhr = syn and syn.request or request or http_request
         if not xhr then
@@ -520,10 +514,9 @@ sendBtn.MouseButton1Click:Connect(function()
             headers["X-CSRF-TOKEN"] = csrf
         end
 
-        local url = ep
         local successReq, resp = pcall(function()
             return xhr({
-                Url = url,
+                Url = ep,
                 Method = "POST",
                 Headers = headers,
                 Body = game:GetService("HttpService"):JSONEncode(payload)
@@ -555,7 +548,6 @@ sendBtn.MouseButton1Click:Connect(function()
     sendNext()
 end)
 
-addLog("✅ UI đã sẵn sàng – bấm ⚙ để nhập endpoint nếu cần", Color3.fromRGB(0, 255, 0))
-addLog("📋 Danh sách có " .. #itemDatabase .. " vật phẩm", Color3.fromRGB(0, 200, 255))
-addLog("💡 Nếu gửi không thành công, kiểm tra endpoint và log", Color3.fromRGB(255, 200, 0))
-    
+addLog("✅ UI đã sẵn sàng – nhập tên vật phẩm (không cần ID)", Color3.fromRGB(0, 255, 0))
+addLog("📋 Danh sách có " .. #itemNameDatabase .. " tên vật phẩm", Color3.fromRGB(0, 200, 255))
+addLog("💡 Bấm ⚙ để nhập endpoint nếu cần", Color3.fromRGB(255, 200, 0))
