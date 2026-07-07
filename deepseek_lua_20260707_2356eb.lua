@@ -1,11 +1,11 @@
 -- ============================================================
--- UI GIFT BOX – Sửa lỗi dropdown không hiển thị chữ
--- Bản này dùng khung dropdown gắn trực tiếp ScreenGui, ZIndex cao
+-- UI GIFT BOX – Bản dùng cửa sổ popup để chọn vật phẩm
+-- Đảm bảo hiển thị rõ ràng, không bị che
 -- ============================================================
 
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui")
-gui.Name = "GiftBoxUI_Final"
+gui.Name = "GiftBoxUI_Popup"
 gui.ResetOnSpawn = false
 gui.Parent = player.PlayerGui
 
@@ -17,7 +17,6 @@ frame.BackgroundColor3 = Color3.fromRGB(15, 15, 35)
 frame.BackgroundTransparency = 0.1
 frame.BorderSizePixel = 2
 frame.BorderColor3 = Color3.fromRGB(255, 100, 120)
-frame.ClipsDescendants = false  -- cho phép con tràn ra ngoài
 frame.Parent = gui
 
 -- Tiêu đề
@@ -30,7 +29,7 @@ title.TextSize = 17
 title.Font = Enum.Font.SourceSansBold
 title.Parent = frame
 
--- Người nhận
+-- Ô người nhận
 local userBox = Instance.new("TextBox")
 userBox.Size = UDim2.new(1, -20, 0, 28)
 userBox.Position = UDim2.new(0, 10, 0, 40)
@@ -44,7 +43,7 @@ userBox.Font = Enum.Font.SourceSans
 userBox.TextSize = 14
 userBox.Parent = frame
 
--- ========== HÀNG NHẬP ==========
+-- ========== HÀNG NHẬP LIỆU ==========
 local row = Instance.new("Frame")
 row.Size = UDim2.new(1, -20, 0, 34)
 row.Position = UDim2.new(0, 10, 0, 74)
@@ -64,20 +63,21 @@ idBox.Font = Enum.Font.SourceSans
 idBox.TextSize = 14
 idBox.Parent = row
 
-local dropBtn = Instance.new("TextButton")
-dropBtn.Size = UDim2.new(0, 32, 0, 30)
-dropBtn.Position = UDim2.new(0, 104, 0, 0)
-dropBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 80)
-dropBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-dropBtn.BorderSizePixel = 0
-dropBtn.Text = "▼"
-dropBtn.Font = Enum.Font.SourceSansBold
-dropBtn.TextSize = 16
-dropBtn.Parent = row
+-- Nút mở popup chọn vật phẩm
+local pickBtn = Instance.new("TextButton")
+pickBtn.Size = UDim2.new(0, 90, 0, 30)
+pickBtn.Position = UDim2.new(0, 105, 0, 0)
+pickBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 140)
+pickBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+pickBtn.BorderSizePixel = 0
+pickBtn.Text = "📋 Chọn"
+pickBtn.Font = Enum.Font.SourceSansBold
+pickBtn.TextSize = 14
+pickBtn.Parent = row
 
 local qtyBox = Instance.new("TextBox")
-qtyBox.Size = UDim2.new(0, 70, 0, 30)
-qtyBox.Position = UDim2.new(0, 140, 0, 0)
+qtyBox.Size = UDim2.new(0, 60, 0, 30)
+qtyBox.Position = UDim2.new(0, 200, 0, 0)
 qtyBox.BackgroundColor3 = Color3.fromRGB(30, 30, 55)
 qtyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 qtyBox.BorderSizePixel = 1
@@ -90,7 +90,7 @@ qtyBox.Parent = row
 
 local addBtn = Instance.new("TextButton")
 addBtn.Size = UDim2.new(0, 65, 0, 30)
-addBtn.Position = UDim2.new(0, 215, 0, 0)
+addBtn.Position = UDim2.new(0, 265, 0, 0)
 addBtn.BackgroundColor3 = Color3.fromRGB(50, 180, 110)
 addBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 addBtn.BorderSizePixel = 0
@@ -98,6 +98,58 @@ addBtn.Text = "+ Thêm"
 addBtn.Font = Enum.Font.SourceSansBold
 addBtn.TextSize = 14
 addBtn.Parent = row
+
+-- ========== POPUP CHỌN VẬT PHẨM ==========
+local popupFrame = Instance.new("Frame")
+popupFrame.Size = UDim2.new(0, 320, 0, 380)
+popupFrame.Position = UDim2.new(0.5, -160, 0.5, -190) -- căn giữa màn hình
+popupFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 45)
+popupFrame.BorderSizePixel = 3
+popupFrame.BorderColor3 = Color3.fromRGB(200, 150, 200)
+popupFrame.Visible = false
+popupFrame.ZIndex = 999
+popupFrame.Parent = gui
+
+-- Tiêu đề popup
+local popupTitle = Instance.new("TextLabel")
+popupTitle.Size = UDim2.new(1, 0, 0, 34)
+popupTitle.BackgroundTransparency = 1
+popupTitle.Text = "📋 Chọn vật phẩm (ID - Tên)"
+popupTitle.TextColor3 = Color3.fromRGB(255, 200, 200)
+popupTitle.TextSize = 16
+popupTitle.Font = Enum.Font.SourceSansBold
+popupTitle.Parent = popupFrame
+
+-- Khung danh sách
+local popupList = Instance.new("ScrollingFrame")
+popupList.Size = UDim2.new(1, -16, 1, -60)
+popupList.Position = UDim2.new(0, 8, 0, 40)
+popupList.BackgroundColor3 = Color3.fromRGB(10, 10, 25)
+popupList.BorderSizePixel = 1
+popupList.BorderColor3 = Color3.fromRGB(80, 80, 120)
+popupList.CanvasSize = UDim2.new(0, 0, 0, 0)
+popupList.ScrollBarThickness = 6
+popupList.Parent = popupFrame
+
+local popupLayout = Instance.new("UIListLayout")
+popupLayout.Parent = popupList
+popupLayout.SortOrder = Enum.SortOrder.LayoutOrder
+popupLayout.Padding = UDim.new(0, 2)
+
+-- Nút đóng popup
+local closePopupBtn = Instance.new("TextButton")
+closePopupBtn.Size = UDim2.new(0, 80, 0, 30)
+closePopupBtn.Position = UDim2.new(1, -90, 1, -40)
+closePopupBtn.BackgroundColor3 = Color3.fromRGB(140, 40, 40)
+closePopupBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closePopupBtn.BorderSizePixel = 0
+closePopupBtn.Text = "✖ Đóng"
+closePopupBtn.Font = Enum.Font.SourceSansBold
+closePopupBtn.TextSize = 14
+closePopupBtn.Parent = popupFrame
+closePopupBtn.MouseButton1Click:Connect(function()
+    popupFrame.Visible = false
+end)
 
 -- ========== DANH SÁCH VẬT PHẨM ==========
 local itemDatabase = {
@@ -160,95 +212,49 @@ local itemDatabase = {
     {id = 126, name = "Rainbow Carpet"},
 }
 
--- ========== DROPDOWN – KHUNG NỔI ==========
-local dropFrame = Instance.new("Frame")
-dropFrame.Size = UDim2.new(0, 280, 0, 200)
-dropFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 55)
-dropFrame.BorderSizePixel = 2
-dropFrame.BorderColor3 = Color3.fromRGB(200, 150, 200)
-dropFrame.Visible = false
-dropFrame.ZIndex = 999
-dropFrame.Parent = gui  -- gắn trực tiếp vào ScreenGui
-
-local dropList = Instance.new("ScrollingFrame")
-dropList.Size = UDim2.new(1, -8, 1, -8)
-dropList.Position = UDim2.new(0, 4, 0, 4)
-dropList.BackgroundColor3 = Color3.fromRGB(15, 15, 35)
-dropList.BorderSizePixel = 0
-dropList.CanvasSize = UDim2.new(0, 0, 0, 0)
-dropList.ScrollBarThickness = 6
-dropList.Parent = dropFrame
-
-local dropLayout = Instance.new("UIListLayout")
-dropLayout.Parent = dropList
-dropLayout.SortOrder = Enum.SortOrder.LayoutOrder
-dropLayout.Padding = UDim.new(0, 2)
-
-local function buildDropList()
-    for _, child in pairs(dropList:GetChildren()) do
+-- Hàm xây dựng danh sách trong popup
+local function buildPopupList()
+    for _, child in pairs(popupList:GetChildren()) do
         if child:IsA("TextButton") then child:Destroy() end
     end
     for _, data in ipairs(itemDatabase) do
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, -6, 0, 28)
-        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 75)
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)  -- chữ trắng trên nền tối
+        btn.Size = UDim2.new(1, -4, 0, 28)
+        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 70)
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)  -- chữ trắng
         btn.BorderSizePixel = 0
         btn.Text = data.id .. " - " .. data.name
         btn.TextSize = 13
         btn.Font = Enum.Font.SourceSans
         btn.TextXAlignment = Enum.TextXAlignment.Left
         btn.ZIndex = 1000
-        btn.Parent = dropList
+        btn.Parent = popupList
+        -- Chọn item khi bấm
         btn.MouseButton1Click:Connect(function()
             idBox.Text = tostring(data.id)
-            dropFrame.Visible = false
+            popupFrame.Visible = false
         end)
-        -- hiệu ứng hover
+        -- Hover
         btn.MouseEnter:Connect(function()
             btn.BackgroundColor3 = Color3.fromRGB(70, 70, 120)
         end)
         btn.MouseLeave:Connect(function()
-            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 75)
+            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 70)
         end)
     end
-    dropList.CanvasSize = UDim2.new(0, 0, 0, #itemDatabase * 30 + 6)
-end
-buildDropList()
-
--- Hàm cập nhật vị trí dropdown (ngay dưới nút ▼)
-local function updateDropPosition()
-    local absPos = dropBtn.AbsolutePosition
-    local guiAbs = gui.AbsolutePosition
-    dropFrame.Position = UDim2.new(0, absPos.X - guiAbs.X, 0, absPos.Y - guiAbs.Y + 34)
+    popupList.CanvasSize = UDim2.new(0, 0, 0, #itemDatabase * 30 + 6)
 end
 
--- Mở/đóng dropdown
-dropBtn.MouseButton1Click:Connect(function()
-    if dropFrame.Visible then
-        dropFrame.Visible = false
-    else
-        buildDropList()
-        updateDropPosition()
-        dropFrame.Visible = true
-        dropFrame.ZIndex = 999
-    end
+-- Mở popup khi bấm nút "Chọn"
+pickBtn.MouseButton1Click:Connect(function()
+    buildPopupList()
+    popupFrame.Visible = true
+    popupFrame.ZIndex = 999
+    -- Đưa popup lên trên cùng
+    popupFrame.Parent = gui
 end)
 
--- Ẩn dropdown khi bấm ra ngoài (bắt sự kiện bấm chuột vào các nút khác)
-local function hideDrop()
-    dropFrame.Visible = false
-end
-
--- Gắn sự kiện ẩn khi bấm vào các thành phần khác (không cần thiết vì đã ẩn khi bấm nút)
--- Nhưng để chắc chắn, ta thêm cho các nút: addBtn, clearBtn, sendBtn, closeBtn, userBox, idBox, qtyBox
-addBtn.MouseButton1Click:Connect(hideDrop)
-clearBtn.MouseButton1Click:Connect(hideDrop)
-sendBtn.MouseButton1Click:Connect(hideDrop)
-closeBtn.MouseButton1Click:Connect(hideDrop)
-userBox.Focused:Connect(hideDrop)
-idBox.Focused:Connect(hideDrop)
-qtyBox.Focused:Connect(hideDrop)
+-- Đóng popup khi bấm ra ngoài (tùy chọn, nhưng không cần vì đã có nút đóng)
 
 -- ========== DANH SÁCH ĐÃ CHỌN ==========
 local listBox = Instance.new("ScrollingFrame")
